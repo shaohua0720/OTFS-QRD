@@ -30,7 +30,7 @@ function x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_co
 yv = reshape(y,N*M,1);
 n_ite = 200;
 delta_fra = 0.6;
-alphabet = qammod(0:M_mod-1,M_mod,0,'gray');
+alphabet = qammod(0:M_mod-1,M_mod,'gray');
 
 mean_int = zeros(N*M,taps);
 var_int = zeros(N*M,taps);
