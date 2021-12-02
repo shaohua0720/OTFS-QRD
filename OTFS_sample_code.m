@@ -34,9 +34,9 @@ tic
 % number of symbol
 N = 8;
 % number of subcarriers
-M = 8;
+M = 16;
 % size of constellation
-M_mod = 4;
+M_mod = 16;
 M_bits = log2(M_mod);
 % average energy per data symbol
 eng_sqrt = (M_mod==2)+(M_mod~=2)*sqrt((M_mod-1)/6*(2^2));
@@ -53,28 +53,40 @@ sigma_2 = abs(eng_sqrt*noise_var_sqrt).^2;
 %rng(1)
 N_fram = 10^4;
 err_ber = zeros(length(SNR_dB),1);
-for iesn0 = 1:length(SNR_dB)
+parfor iesn0 = 1:length(SNR_dB)
     for ifram = 1:N_fram
         %% random input bits generation%%%%%
         data_info_bit = randi([0,1],N_bits_perfram,1);
         data_temp = bi2de(reshape(data_info_bit,N_syms_perfram,M_bits));
         x = qammod(data_temp,M_mod,'gray');
-        x = reshape(x,N,M);
+        x = reshape(x,M,N);
         
         %% OTFS modulation%%%%
-        s = OTFS_modulation(N,M,x);
+        s = OTFS_modulation(M,N,x);
         
         %% OTFS channel generation%%%%
-        [taps,delay_taps,Doppler_taps,chan_coef] = OTFS_channel_gen(N,M);
-        
+        [taps,delay_taps,Doppler_taps,chan_coef] = OTFS_channel_gen(M,N);
+ 
         %% OTFS channel output%%%%%
-        r = OTFS_channel_output(N,M,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),s);
-        
+        r = OTFS_channel_output(M,N,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),s);
+
         %% OTFS demodulation%%%%
-        y = OTFS_demodulation(N,M,r);
+        y = OTFS_demodulation(M,N,r);
+        
+       %% OTFS channel estimation%%%%
+        He = OTFS_channel_est(M,N,taps,delay_taps,Doppler_taps,chan_coef); % effective TF channel
+        isft_mtx = kron(conj(dftmtx(N))/sqrt(N),eye(M));
+        sft_mtx = kron(dftmtx(N)/sqrt(N),eye(M));
+        H = sft_mtx*He*isft_mtx;
+        
+        
+       %% QRD-based ZF-SIC detector%%%%
+        y = sft_mtx'*y(:);
+        x_est = OTFS_qr_detector(He,N,M,M_mod,taps,delay_taps(end),y);
+        x_est = isft_mtx'*x_est;
         
         %% message passing detector%%%%
-        x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),y);
+        %x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),y);
         
         %% output bits and errors count%%%%%
         data_demapping = qamdemod(x_est,M_mod,'gray');
