@@ -51,9 +51,9 @@ noise_var_sqrt = sqrt(1./SNR);
 sigma_2 = abs(eng_sqrt*noise_var_sqrt).^2;
 %%
 %rng(1)
-N_fram = 10^4;
+N_fram = 10^5;
 err_ber = zeros(length(SNR_dB),1);
-parfor iesn0 = 1:length(SNR_dB)
+for iesn0 = 1:length(SNR_dB)
     for ifram = 1:N_fram
         %% random input bits generation%%%%%
         data_info_bit = randi([0,1],N_bits_perfram,1);
@@ -81,10 +81,12 @@ parfor iesn0 = 1:length(SNR_dB)
         
         
        %% QRD-based ZF-SIC detector%%%%
-        y = sft_mtx'*y(:);
-        x_est = OTFS_qr_detector(He,N,M,M_mod,taps,delay_taps(end),y);
-        x_est = isft_mtx'*x_est;
+        %y = sft_mtx'*y(:);
+        %x_est = OTFS_qr_detector(He,N,M,M_mod,taps,delay_taps(end),y);
+        %x_est = isft_mtx'*x_est;
         
+        %% ZF-inv based detector
+        x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
         %% message passing detector%%%%
         %x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),y);
         
@@ -102,3 +104,4 @@ title(sprintf('OTFS'))
 ylabel('BER'); xlabel('SNR in dB');grid on
 
 toc
+save('OTFS_16QAM_MN16x8_10_2_20_ZF.mat','SNR_dB','err_ber_fram');
