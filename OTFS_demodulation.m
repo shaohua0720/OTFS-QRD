@@ -25,9 +25,9 @@
 %    - Latest version of this code may be downloaded from: https://ecse.monash.edu/staff/eviterbo/
 %    - Freely distributed for educational and research purposes
 %%
-function y = OTFS_demodulation(M,N,r)
+function y = OTFS_demodulation(M,N,r_mat)
 %% OTFS demodulation: 1. Wiegner transform, 2. SFFT
-r_mat = reshape(r,M,N);
+% r_mat = reshape(r,M,N);
 Y = fft(r_mat)/sqrt(M); % Wigner transform
 Y = Y.'; %NxM
 y = ifft(fft(Y).')/sqrt(N/M); % SFFT

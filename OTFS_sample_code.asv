@@ -84,8 +84,8 @@ for iesn0 = 1:length(SNR_dB)
 %         sft_mtx = kron(dftmtx(N)/sqrt(N),eye(M));
 %         H = sft_mtx*He*isft_mtx;
         
-        isft_mtx1 = kron(eye(M),conj(dftmtx(N))/sqrt(N));
-        sft_mtx1 = kron(eye(M),(dftmtx(N))/sqrt(N));
+        isft_mtx1 = kron(eye(M),dftmtx(N)/sqrt(N));
+        sft_mtx1 = kron(eye(M),conj(dftmtx(N))/sqrt(N));
         H = sft_mtx1*He*isft_mtx1;
         
         
@@ -94,12 +94,10 @@ for iesn0 = 1:length(SNR_dB)
         %x_est = OTFS_qr_detector(He,N,M,M_mod,taps,delay_taps(end),y);
         %x_est = isft_mtx'*x_est;
         
-        y = y.'; % y in NxM
+        y = y.'; % y in 
        %% ZF-inv based detector
-        x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
-        xt = reshape(x_est,N,M);
-        xt = xt.';
-        x_est=xt(:);
+        x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y);
+       
        %% message passing detector%%%%
         %x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),y);
         
