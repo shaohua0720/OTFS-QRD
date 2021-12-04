@@ -7,12 +7,24 @@ N=4;
 coeff;
 tau_PI=circshift(eye(M*N),-1,2);
 delta = diag(exp(1i*2*pi/M/N*(0:M*N-1)));
-H = zeros(M*N);
+isft_mtx = kron(conj(dftmtx(N))/sqrt(N),eye(M));
+sft_mtx = kron(dftmtx(N)/sqrt(N),eye(M));
+
+isft_mtx1 = kron(eye(M),conj(dftmtx(N))/sqrt(N));
+sft_mtx1 = kron(eye(M),dftmtx(N)/sqrt(N));
+
+He = zeros(M*N);
 for j=1:P
-    H = H + coeff(j)*tau_PI^delay(j)*delta^doppler(j);
+    He = He + coeff(j)*tau_PI^delay(j)*delta^doppler(j);
 end
-H_H = tau_PI^(M*N-4)*H;
-cir_H = H_H;
+He = tau_PI^(M*N-delay(end))*He;
+H = He*isft_mtx1;
+
+H(find(H<1e-7))=0;
+
+
+cir_H = H;
+H_H = H;
 % abs_cir_H = abs(cir_H);
 % Ht = cir_H(:,1);
 t = 0;

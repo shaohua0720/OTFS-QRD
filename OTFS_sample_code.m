@@ -34,7 +34,7 @@ tic
 % number of symbol
 N = 8;
 % number of subcarriers
-M = 8;
+M = 16;
 % size of constellation
 M_mod = 16;
 M_bits = log2(M_mod);

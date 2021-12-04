@@ -34,6 +34,6 @@ for itao = 1:taps
     s_chan = s_chan+chan_coef(itao)*circshift([s.*exp(1j*2*pi/M*(-L:-L+length(s)-1)*Doppler_taps(itao)/N).';zeros(delay_taps(end),1)],delay_taps(itao));
 end
 noise = sqrt(sigma_2/2)*(randn(size(s_chan)) + 1i*randn(size(s_chan)));
-r = s_chan + noise;
+r = s_chan;% + noise;
 r = r(L+1:L+(N*M));%discard cp
 end
