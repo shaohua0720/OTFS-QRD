@@ -32,9 +32,9 @@ close all
 tic
 %% OTFS parameters%%%%%%%%%%
 % number of symbol
-N = 8;
+N = 4;
 % number of subcarriers
-M = 16;
+M = 8;
 % size of constellation
 M_mod = 16;
 M_bits = log2(M_mod);
@@ -90,22 +90,24 @@ for iesn0 = 1:length(SNR_dB)
         
         
        %% QRD-based ZF-SIC detector%%%%
-        %y = sft_mtx'*y(:);
-        %x_est = OTFS_qr_detector(He,N,M,M_mod,taps,delay_taps(end),y);
-        %x_est = isft_mtx'*x_est;
-        
-        y = y.'; % y in NxM
-       %% ZF-inv based detector
-        x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
+        y=y.';
+        x_est = OTFS_qr_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
         xt = reshape(x_est,N,M);
         xt = xt.';
         x_est=xt(:);
+        
+       %% ZF-inv based detector
+        %y = y.'; % y in NxM
+        %x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
+        %xt = reshape(x_est,N,M);
+        %xt = xt.';
+        %x_est=xt(:);
        %% message passing detector%%%%
         %x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),y);
         
         %% output bits and errors count%%%%%
-        data_demapping = qamdemod(x_est,M_mod,'gray');
-        data_info_est = reshape(de2bi(data_demapping,M_bits),N_bits_perfram,1);
+        %data_demapping = qamdemod(x_est,M_mod,'gray');
+        data_info_est = reshape(de2bi(x_est,M_bits),N_bits_perfram,1);
         errors = sum(xor(data_info_est,data_info_bit));
         err_ber(iesn0) = errors + err_ber(iesn0);
         ifram
