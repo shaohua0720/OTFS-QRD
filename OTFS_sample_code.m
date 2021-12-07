@@ -51,7 +51,7 @@ noise_var_sqrt = sqrt(1./SNR);
 sigma_2 = abs(eng_sqrt*noise_var_sqrt).^2;
 %%
 rng(1)
-N_fram = 10^4;
+N_fram = 10^5;
 err_ber = zeros(length(SNR_dB),1);
 parfor iesn0 = 1:length(SNR_dB)
     for ifram = 1:N_fram
@@ -90,29 +90,32 @@ parfor iesn0 = 1:length(SNR_dB)
         
         
        %% QRD-based MMSE-SIC detector%%%
-%         %Hmmse = [H;0*eye(M*N)]; 
-%         Hmmse = [H;sqrt(sigma_2(iesn0))*eye(M*N)]; 
-%         y=y.';
-%         x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
-%         xt = reshape(x_est,N,M);
-%         xt = xt.';
-%         x_est=xt(:);
-        
-       %% QRD-based ZF-SIC detector%%%%
+        %Hmmse = [H;0*eye(M*N)]; 
+        Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)]; 
         y=y.';
-        x_est = OTFS_qr_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
+        x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
         xt = reshape(x_est,N,M);
         xt = xt.';
         x_est=xt(:);
         
-       %% ZF-inv based detector
-        %y = y.'; % y in NxM
-        %x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
-        %xt = reshape(x_est,N,M);
-        %xt = xt.';
-        %x_est=xt(:);
-       %% message passing detector%%%%
-        %x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),y);
+%        %% QRD-based ZF-SIC detector%%%%
+%         y=y.';
+%         x_est = OTFS_qr_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
+%         xt = reshape(x_est,N,M);
+%         xt = xt.';
+%         x_est=xt(:);
+        
+%        %% ZF-inv based detector
+%         y = y.'; % y in NxM
+%         x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
+%         xt = reshape(x_est,N,M);
+%         xt = xt.';
+%         x_est=xt(:);
+%         x_est = qamdemod(x_est,M_mod,'gray');
+
+%        %% message passing detector%%%%
+%         x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),y);
+%         x_est = qamdemod(x_est,M_mod,'gray');
         
         %% output bits and errors count%%%%%
         %data_demapping = qamdemod(x_est,M_mod,'gray');
@@ -128,4 +131,4 @@ title(sprintf('OTFS'))
 ylabel('BER'); xlabel('SNR in dB');grid on
 
 toc
-save('OTFS_16QAM_MN16x8_10_2_20_ZFSIC.mat','SNR_dB','err_ber_fram');
+save('OTFS_16QAM_MN16x8_10_2_20_MMSESIC.mat','SNR_dB','err_ber_fram');
