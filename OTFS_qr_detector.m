@@ -18,19 +18,22 @@ Q = eye(M*N);
 % x = OTFS_qr_sic(cir_H,cir_y);
 % sum(abs(H_H-cir_H*Q')) % for test
 
-%% R(i,i) decreasing order
-for j =1:M*N % columns
-    for i = M*N:-1:j+1
-        if abs(cir_H(i,j))>1e-7
-            Q1 = givensH(cir_H(:,j),j,i);
-            cir_H = Q1*cir_H;
-            Q=Q1*Q;
-        end
-    end
-end
-
-x = OTFS_qr_sic(cir_H,Q*cir_y,M_mod);
+% %% R(i,i) decreasing order
+% for j =1:M*N % columns
+%     for i = M*N:-1:j+1
+%         if abs(cir_H(i,j))>1e-7
+%             Q1 = givensH(cir_H(:,j),j,i);
+%             cir_H = Q1*cir_H;
+%             Q=Q1*Q;
+%         end
+%     end
+% end
 % sum(abs(H_H-Q'*cir_H)); %for test
+
+[Q,R] = qr(H,0);
+T = Q(1:M*N,:);
+x = OTFS_qr_sic(R,T'*cir_y,M_mod);
+
 
 
 end

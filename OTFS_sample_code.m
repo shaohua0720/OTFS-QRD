@@ -32,9 +32,9 @@ close all
 tic
 %% OTFS parameters%%%%%%%%%%
 % number of symbol
-N = 4;
+N = 8;
 % number of subcarriers
-M = 8;
+M = 16;
 % size of constellation
 M_mod = 16;
 M_bits = log2(M_mod);
@@ -51,9 +51,9 @@ noise_var_sqrt = sqrt(1./SNR);
 sigma_2 = abs(eng_sqrt*noise_var_sqrt).^2;
 %%
 rng(1)
-N_fram = 10^5;
+N_fram = 10^4;
 err_ber = zeros(length(SNR_dB),1);
-for iesn0 = 1:length(SNR_dB)
+parfor iesn0 = 1:length(SNR_dB)
     for ifram = 1:N_fram
         %% random input bits generation%%%%%
         data_info_bit = randi([0,1],N_bits_perfram,1);
@@ -89,6 +89,15 @@ for iesn0 = 1:length(SNR_dB)
         H = sft_mtx1*He*isft_mtx1;
         
         
+       %% QRD-based MMSE-SIC detector%%%
+%         %Hmmse = [H;0*eye(M*N)]; 
+%         Hmmse = [H;sqrt(sigma_2(iesn0))*eye(M*N)]; 
+%         y=y.';
+%         x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
+%         xt = reshape(x_est,N,M);
+%         xt = xt.';
+%         x_est=xt(:);
+        
        %% QRD-based ZF-SIC detector%%%%
         y=y.';
         x_est = OTFS_qr_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
@@ -119,4 +128,4 @@ title(sprintf('OTFS'))
 ylabel('BER'); xlabel('SNR in dB');grid on
 
 toc
-save('OTFS_16QAM_MN16x8_10_2_20_ZF.mat','SNR_dB','err_ber_fram');
+save('OTFS_16QAM_MN16x8_10_2_20_ZFSIC.mat','SNR_dB','err_ber_fram');
