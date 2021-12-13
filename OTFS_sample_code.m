@@ -51,7 +51,7 @@ noise_var_sqrt = sqrt(1./SNR);
 sigma_2 = abs(eng_sqrt*noise_var_sqrt).^2;
 %%
 rng(1)
-N_fram = 10^5;
+N_fram = 10^4;
 err_ber = zeros(length(SNR_dB),1);
 parfor iesn0 = 1:length(SNR_dB)
     for ifram = 1:N_fram
@@ -70,10 +70,11 @@ parfor iesn0 = 1:length(SNR_dB)
         [taps,delay_taps,Doppler_taps,chan_coef] = OTFS_channel_gen(M,N);
  
         %% OTFS channel output%%%%%
-        r = OTFS_channel_output(M,N,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),s);
+        r_mat = OTFS_channel_output(M,N,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),s);
 
-        r_mat = reshape(r,N,M);
+        r_mat = reshape(r_mat,N,M);
         r_mat = r_mat.'; %MxN
+        r_mat = reshape(r_mat,M,N);
         
         %% OTFS demodulation%%%%
         y = OTFS_demodulation(M,N,r_mat); % y in MxN
@@ -89,18 +90,34 @@ parfor iesn0 = 1:length(SNR_dB)
         H = sft_mtx1*He*isft_mtx1;
         
         
-       %% QRD-based MMSE-SIC detector%%%
-        %Hmmse = [H;0*eye(M*N)]; 
-        Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)]; 
+%        %% QRD-based MMSE-SIC detector%%%
+%         %Hmmse = [H;0*eye(M*N)]; 
+%         Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)]; 
+%         y=y.';
+%         x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
+%         xt = reshape(x_est,N,M);
+%         xt = xt.';
+%         x_est=xt(:);
+         
+        %% SQRD-based MMSE-SIC detector%%%
+        Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)];
         y=y.';
-        x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
+        x_est = OTFS_sqrd_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
         xt = reshape(x_est,N,M);
         xt = xt.';
         x_est=xt(:);
+
         
 %        %% QRD-based ZF-SIC detector%%%%
 %         y=y.';
 %         x_est = OTFS_qr_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
+%         xt = reshape(x_est,N,M);
+%         xt = xt.';
+%         x_est=xt(:);
+        
+%         %% SQRD-based ZF-SIC detector%%
+%         y=y.';
+%         x_est = OTFS_sqrd_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
 %         xt = reshape(x_est,N,M);
 %         xt = xt.';
 %         x_est=xt(:);
@@ -131,4 +148,4 @@ title(sprintf('OTFS'))
 ylabel('BER'); xlabel('SNR in dB');grid on
 
 toc
-save('OTFS_16QAM_MN16x8_10_2_20_MMSESIC.mat','SNR_dB','err_ber_fram');
+save('OTFS_16QAM_MN16x8_10_2_20_SQRD_MMSESIC.mat','SNR_dB','err_ber_fram');
