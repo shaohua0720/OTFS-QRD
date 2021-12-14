@@ -34,9 +34,9 @@ tic
 % number of symbol
 N = 8;
 % number of subcarriers
-M = 16;
+M = 8;
 % size of constellation
-M_mod = 64;
+M_mod = 4;
 M_bits = log2(M_mod);
 % average energy per data symbol
 eng_sqrt = (M_mod==2)+(M_mod~=2)*sqrt((M_mod-1)/6*(2^2));
@@ -45,7 +45,7 @@ N_syms_perfram = N*M;
 % number of bits per frame
 N_bits_perfram = N*M*M_bits;
 
-SNR_dB = 20:2:30;
+SNR_dB = 10:2:20;
 SNR = 10.^(SNR_dB/10);
 noise_var_sqrt = sqrt(1./SNR);
 sigma_2 = abs(eng_sqrt*noise_var_sqrt).^2;
@@ -90,14 +90,14 @@ parfor iesn0 = 1:length(SNR_dB)
         H = sft_mtx1*He*isft_mtx1;
         
         
-%        %% QRD-based MMSE-SIC detector%%%
-%         %Hmmse = [H;0*eye(M*N)]; 
-%         Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)]; 
-%         y=y.';
-%         x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
-%         xt = reshape(x_est,N,M);
-%         xt = xt.';
-%         x_est=xt(:);
+       %% QRD-based MMSE-SIC detector%%%
+        %Hmmse = [H;0*eye(M*N)]; 
+        Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)]; 
+        y=y.';
+        x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
+        xt = reshape(x_est,N,M);
+        xt = xt.';
+        x_est=xt(:);
          
 %         %% SQRD-based MMSE-SIC detector%%%
 %         Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)];
@@ -122,13 +122,13 @@ parfor iesn0 = 1:length(SNR_dB)
 %         xt = xt.';
 %         x_est=xt(:);
         
-       %% ZF-inv based detector
-        y = y.'; % y in NxM
-        x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
-        xt = reshape(x_est,N,M);
-        xt = xt.';
-        x_est=xt(:);
-        x_est = qamdemod(x_est,M_mod,'gray');
+%        %% ZF-inv based detector
+%         y = y.'; % y in NxM
+%         x_est = OTFS_zfinv_detector(H,N,M,M_mod,taps,delay_taps(end),y(:));
+%         xt = reshape(x_est,N,M);
+%         xt = xt.';
+%         x_est=xt(:);
+%         x_est = qamdemod(x_est,M_mod,'gray');
 
 %        %% message passing detector%%%%
 %         x_est = OTFS_mp_detector(N,M,M_mod,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),y);
@@ -148,4 +148,4 @@ title(sprintf('OTFS'))
 ylabel('BER'); xlabel('SNR in dB');grid on
 
 toc
-save('OTFS_64QAM_MN16x8_20_2_30_ZF.mat','SNR_dB','err_ber_fram');
+save('OTFS_4QAM_MN8x8_10_2_20_MMSESIC.mat','SNR_dB','err_ber_fram');
