@@ -30,7 +30,7 @@ function [taps,delay_taps,Doppler_taps,chan_coef] = OTFS_channel_gen(N,M)
 %channel with 4 taps of uniform power%%% 
 taps = 3;
 delay_taps = [0 2 3];
-Doppler_taps = [0 2 3];
+Doppler_taps = [0.3 2.4 3.1];
 pow_prof = (1/taps) * (ones(1,taps));
 chan_coef = sqrt(pow_prof).*(sqrt(1/2) * (randn(1,taps)+1i*randn(1,taps)));
 %%%%%%%%%%%%%%%%%%%%

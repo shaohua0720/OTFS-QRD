@@ -34,7 +34,7 @@ tic
 % number of symbol
 N = 8;
 % number of subcarriers
-M = 8;
+M = 16;
 % size of constellation
 M_mod = 4;
 M_bits = log2(M_mod);
@@ -51,9 +51,9 @@ noise_var_sqrt = sqrt(1./SNR);
 sigma_2 = abs(eng_sqrt*noise_var_sqrt).^2;
 %%
 rng(1)
-N_fram = 10^4;
+N_fram = 10^3;
 err_ber = zeros(length(SNR_dB),1);
-parfor iesn0 = 1:length(SNR_dB)
+for iesn0 = 1:length(SNR_dB)
     for ifram = 1:N_fram
         %% random input bits generation%%%%%
         data_info_bit = randi([0,1],N_bits_perfram,1);
@@ -63,7 +63,7 @@ parfor iesn0 = 1:length(SNR_dB)
         
         %% OTFS modulation%%%%
         s = OTFS_modulation(M,N,x);
-        s = s.'; % convert from MxN to NxM
+%         s = s.'; % convert from MxN to NxM
         s = s(:);
         
         %% OTFS channel generation%%%%
@@ -72,37 +72,43 @@ parfor iesn0 = 1:length(SNR_dB)
         %% OTFS channel output%%%%%
         r_mat = OTFS_channel_output(M,N,taps,delay_taps,Doppler_taps,chan_coef,sigma_2(iesn0),s);
 
-        r_mat = reshape(r_mat,N,M);
-        r_mat = r_mat.'; %MxN
+%         r_mat = reshape(r_mat,N,M);
+%         r_mat = r_mat.'; %MxN
         r_mat = reshape(r_mat,M,N);
         
         %% OTFS demodulation%%%%
         y = OTFS_demodulation(M,N,r_mat); % y in MxN
         
        %% OTFS channel estimation%%%%
-        He = OTFS_channel_est(M,N,taps,delay_taps,Doppler_taps,chan_coef); % effective TF channel
+%         He = OTFS_channel_est(M,N,taps,delay_taps,Doppler_taps,chan_coef); % effective TF channel
 %         isft_mtx = kron(conj(dftmtx(N))/sqrt(N),eye(M));
 %         sft_mtx = kron(dftmtx(N)/sqrt(N),eye(M));
 %         H = sft_mtx*He*isft_mtx;
         
-        isft_mtx1 = kron(eye(M),conj(dftmtx(N))/sqrt(N));
-        sft_mtx1 = kron(eye(M),(dftmtx(N))/sqrt(N));
-        H = sft_mtx1*He*isft_mtx1;
+%         isft_mtx1 = kron(eye(M),conj(dftmtx(N))/sqrt(N));
+%         sft_mtx1 = kron(eye(M),(dftmtx(N))/sqrt(N));
+%         H = sft_mtx1*He*isft_mtx1;
+
+          % frac doppler channel estimation
+          vi = floor(Doppler_taps);
+          vf = Doppler_taps - vi;
+          H = OTFS_channel_est_frac(taps,delay_taps,vi,vf,chan_coef,M,N,5);
         
         
        %% QRD-based MMSE-SIC detector%%%
         %Hmmse = [H;0*eye(M*N)]; 
-        Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)]; 
-        y=y.';
-        x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
-        xt = reshape(x_est,N,M);
-        xt = xt.';
-        x_est=xt(:);
+%         Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)]; 
+%         y=y.';
+%         x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
+%         xt = reshape(x_est,N,M);
+%         xt = xt.';
+%         x_est=xt(:);
+        
          
 %         %% SQRD-based MMSE-SIC detector%%%
-%         Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)];
+        Hmmse = [H;sqrt(0.5*sigma_2(iesn0))*eye(M*N)];
 %         y=y.';
-%         x_est = OTFS_sqrd_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
+        x_est = OTFS_sqrd_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
 %         xt = reshape(x_est,N,M);
 %         xt = xt.';
 %         x_est=xt(:);
@@ -148,4 +154,4 @@ title(sprintf('OTFS'))
 ylabel('BER'); xlabel('SNR in dB');grid on
 
 toc
-save('OTFS_4QAM_MN8x8_10_2_20_MMSESIC.mat','SNR_dB','err_ber_fram');
+save('OTFS_4QAM_MN8x8_10_2_20_MMSESIC_Frac.mat','SNR_dB','err_ber_fram');
