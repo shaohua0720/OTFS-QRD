@@ -1,0 +1,15 @@
+clear;clc;
+M=7;
+N=5;
+tau_PI=circshift(eye(M*N),-1,2);
+% delta = diag(exp(1i*2*pi/M/N*(0:M*N-1)));
+isft_mtx = kron(conj(dftmtx(N))/sqrt(N),eye(M));
+sft_mtx = kron(dftmtx(N)/sqrt(N),eye(M));
+He = (randn+1i*randn)*tau_PI^3;
+H1 = sft_mtx*He;
+Dta = diag(exp(1i*2*pi*(0:M*N-1)/M/N))^2;
+H2 = Dta*isft_mtx;
+H = H1*H2;
+Ht = abs(H1)*abs(H2);
+A = abs(H);
+A(find(abs(A)<1e-7))=0;
