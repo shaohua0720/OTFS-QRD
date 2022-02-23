@@ -28,12 +28,14 @@
 function r = OTFS_channel_output(N,M,taps,delay_taps,Doppler_taps,chan_coef,sigma_2,s)
 %% wireless channel and noise 
 L = max(delay_taps);
-s = [s(N*M-L+1:N*M);s];%add one cp
+s = [s;s(1:L)];%add one cyclic-suffix (CP one the other side)
 s_chan = 0;
 for itao = 1:taps
-    s_chan = s_chan+chan_coef(itao)*circshift([s.*exp(1j*2*pi/M*(-L:-L+length(s)-1)*Doppler_taps(itao)/N).';zeros(delay_taps(end),1)],delay_taps(itao));
+%   the term $(0:length(s)-1) = mod((0:length(s)-1),M*N)$
+    s_chan = s_chan+chan_coef(itao)*circshift([s.*exp(1j*2*pi/M*(0:length(s)-1)*Doppler_taps(itao)/N).'],delay_taps(itao));
 end
 noise = sqrt(sigma_2/2)*(randn(size(s_chan)) + 1i*randn(size(s_chan)));
 r = s_chan + noise;
-r = r(L+1:L+(N*M));%discard cp
+r = r(end-M*N+1:end);%discard cp (the points on the begining)
+r = [r(end-L+1:end);r(1:M*N-L)]; % swap the cyclic suffix to the begining
 end
