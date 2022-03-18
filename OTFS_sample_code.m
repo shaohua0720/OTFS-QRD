@@ -59,7 +59,9 @@ parfor iesn0 = 1:length(SNR_dB)
         data_info_bit = randi([0,1],N_bits_perfram,1);
         data_temp = bi2de(reshape(data_info_bit,N_syms_perfram,M_bits));
         x = qammod(data_temp,M_mod,'gray');
-        x = reshape(x,M,N);
+%         x = reshape(x,M,N);
+        x = reshape(x,N,M);
+        x = x.';
         
         %% OTFS modulation%%%%
         s = OTFS_modulation(M,N,x);
@@ -95,9 +97,9 @@ parfor iesn0 = 1:length(SNR_dB)
         Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)]; 
         y=y.';
         x_est = OTFS_qr_detector(Hmmse,N,M,M_mod,taps,delay_taps(end),y(:));
-        xt = reshape(x_est,N,M);
-        xt = xt.';
-        x_est=xt(:);
+%         xt = reshape(x_est,N,M);
+%         xt = xt.';
+%         x_est=xt(:);
          
 %         %% SQRD-based MMSE-SIC detector%%%
 %         Hmmse = [H;sqrt(0.05*sigma_2(iesn0))*eye(M*N)];
